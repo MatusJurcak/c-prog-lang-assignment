@@ -210,16 +210,11 @@ check_if_file_is_present_in_tar(tar_files_t const * tar_files, ustar_header_bloc
 }
 
 void
-print_file_name(ustar_header_block_t const * header_block) {
-    printf("%s\n", header_block->name);
-}
-
-void
 print_file_name_if_should_be_printed(tar_files_t const * tar_files, ustar_header_block_t const * header_block) {
     // If no files were specified, we print the name of every file in the archive
     // Otherwise, only the files present in archive that were specified should be printed
     if (tar_files->size == 0 || check_if_file_is_present_in_tar(tar_files, header_block)) {
-        print_file_name(header_block);
+        printf("%s\n", header_block->name);
     }
 }
 
@@ -257,6 +252,18 @@ get_file_size_from_file(FILE * f) {
 }
 
 void
+handle_fread_error() {
+    if (feof(options.f)) {
+        print_error(UNEXPECTED_EOF_IN_ARCHIVE_MESSAGE);
+        print_error(NON_RECOVERABLE_MESSAGE);
+        exit(FATAL_ERROR);
+    } else if (ferror(options.f)) {
+        print_error(NON_RECOVERABLE_MESSAGE);
+        exit(FATAL_ERROR);
+    }
+}
+
+void
 jump_to_next_file_in_archive(ustar_header_block_t const * header_block, size_t archive_size) {
     size_t file_size_from_header = get_file_size_from_header(header_block);
     size_t num_blocks = (file_size_from_header + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -281,15 +288,7 @@ read_file_and_write(char * block, size_t size_to_read, FILE * output_file) {
             exit(FATAL_ERROR);
         }
     } else {
-        // Error handling
-        if (feof(options.f)) {
-            print_error(UNEXPECTED_EOF_IN_ARCHIVE_MESSAGE);
-            print_error(NON_RECOVERABLE_MESSAGE);
-            exit(FATAL_ERROR);
-        } else if (ferror(options.f)) {
-            print_error(NON_RECOVERABLE_MESSAGE);
-            exit(FATAL_ERROR);
-        }
+        handle_fread_error();
     }
 }
 
@@ -397,14 +396,7 @@ execute_main_tar_processing_logic(int argc, char * argv[]) {
             }
 
         } else {
-            if (feof(options.f)) {
-                print_error(UNEXPECTED_EOF_IN_ARCHIVE_MESSAGE);
-                print_error(NON_RECOVERABLE_MESSAGE);
-                exit(FATAL_ERROR);
-            } else if (ferror(options.f)) {
-                print_error(NON_RECOVERABLE_MESSAGE);
-                exit(FATAL_ERROR);
-            }
+            handle_fread_error();
         }
     }
 
