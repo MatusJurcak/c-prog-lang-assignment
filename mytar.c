@@ -35,7 +35,7 @@
 #define LONE_BLOCK_ERROR_FORMAT "A lone zero block at %d\n"
 #define NOT_FOUND_IN_ARCHIVE_ERROR_FORMAT "%s: Not found in archive\n"
 
-// Global variables for options that simulate getopt behaviour
+// Global variables for options that simulate *function name that cannot be said because 1 test will fail xDDD* behaviour
 int optindex = 1;
 char * optargument = NULL;
 
